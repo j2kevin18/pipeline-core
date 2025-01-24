@@ -2,13 +2,13 @@
 #define __COMMON_H__
 #include <macro.h>
 #include <autoconf.h>
+#include <sim_difftest.h>
 //C-Standard-File
 #include <stdint.h>
 #include <inttypes.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
-
 #define __GUEST_ISA__ riscv32
 
 
