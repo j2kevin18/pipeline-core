@@ -76,7 +76,7 @@ static void checkregs(CPU_state *ref, vaddr_t pc) {
   
   if(commit_pre_pc != ref->pc){
       printf("[NPC] Difftest Error: 在执行完pc=[%x]指令之后,DUT和REF的状态出现不一致:\n", pc);
-      printf("[参考处理器.pc]=0x%x\n[你的处理器.pc]=0x%x\n", ref->pc,cpu.pc );
+      printf("[参考处理器.pc]=0x%x\n[你的处理器.pc]=0x%x\n", ref->pc, commit_pre_pc);
       printf("\n-----------以下是所有寄存器数据：\n");
       for(int i = 0;  i < 32; ++i){
         printf("[参考处理器.%s]=0x%x, [你的处理器.%s]=0x%x\n", reg_name(i), ref->gpr[i], reg_name(i), gpr(i));
