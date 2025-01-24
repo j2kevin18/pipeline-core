@@ -1,0 +1,23 @@
+mainmenu "NEMU Configuration Menu"  #定义主菜单标题
+
+choice  
+  prompt "Base ISA"  
+  default ISA_riscv  
+config ISA_riscv
+  bool "riscv"
+endchoice
+
+
+source "src/memory/Kconfig"
+source "src/trace/Kconfig"
+source "src/device/Kconfig"
+
+config NPC_OPEN_SIM
+  bool 
+  prompt "(npc) Open Simulation"
+  default y
+
+config DIFFTEST
+  bool 
+  prompt "Open Difftest"
+  default y

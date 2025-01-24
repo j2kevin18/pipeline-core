@@ -1,0 +1,11 @@
+menu "DEVICE"
+
+
+config SERIAL_MMIO
+  hex "MMIO address of the serial controller"
+  default 0xa00003f8  
+config RTC_MMIO
+  hex "MMIO address of the timer"
+  default 0xa0000048
+
+endmenu
