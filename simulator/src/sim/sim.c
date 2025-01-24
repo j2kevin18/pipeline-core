@@ -4,9 +4,7 @@
 #include <sys/types.h>
 #include <verilated.h>
 #include <verilated_vcd_c.h>
-
-  #include <npc.h>
-  #include <npc_CPU.h>
+#include <npc.h>
 
 
 
