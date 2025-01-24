@@ -28,7 +28,7 @@ static word_t sim_time = 0;			//时间
 static word_t clk_count = 0;
 
 void npc_get_clk_count(){
-  printf("NPC运行了%u个周期\n", clk_count);
+  printf("你的处理器运行了%u个clk\n", clk_count);
 }
 
 
@@ -83,7 +83,7 @@ word_t commit_pre_pc = 0;
 void execute(uint64_t n){
   for (   ;n > 0; n --) {
     if (sim_state.state != SIM_RUNNING) {
-      if(sim_state.state == SIM_END) printf("下一个[clk]要执行的指令是]\n");
+      if(sim_state.state == SIM_END) printf("下一条要执行的指令是----![信息待添加]\n");
       break; 
     }
     while(dut.commit != 1){
@@ -133,7 +133,7 @@ void cpu_exec(uint64_t n) {
     case SIM_RUNNING: sim_state.state = SIM_STOP; break;
     case SIM_END: 
     case SIM_ABORT:
-      Log("SIM: %s at pc = " FMT_WORD,
+      Log("SIM: %s at pc = [pc值信息有误,待修复]" FMT_WORD,
           (sim_state.state == SIM_ABORT ? ANSI_FMT("ABORT", ANSI_FG_RED) :
           (sim_state.halt_ret == 0 ? ANSI_FMT("HIT GOOD TRAP", ANSI_FG_GREEN) :
           ANSI_FMT("HIT BAD TRAP", ANSI_FG_RED))),
