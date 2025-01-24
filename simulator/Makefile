@@ -1,15 +1,10 @@
 TOPNAME :=CPU
+CPU_DIR=$(CPU_HOME)/IP/pipeline-cpu
+
+
+
 PREFIX_NAME:=npc
-
-
-
-SINGLE_CYCLE_CPU_DIR=$(CPU_HOME)/IP/pipeline-cpu
-MYCPU_DIR 			=$(CPU_HOME)/IP/mycpu
-
 SRC_DIR:=$(SIM_HOME)/src
-Verilog_DIR:=$(SINGLE_CYCLE_CPU_DIR)
-
-
 TOPNAME_FLAG = --top-module $(TOPNAME)
 PREFIX_FLAG  = --prefix $(PREFIX_NAME)
 
@@ -17,7 +12,7 @@ VL_ROOT_HEADER=\\\"$(PREFIX_NAME).h\\\"
 
 
 VERILATOR = verilator
-VERILATOR_CFLAGS += -MMD --build -j 8 -trace -cc -O0 --x-assign fast --x-initial fast --noassert -I$(SINGLE_CYCLE_CPU_DIR)
+VERILATOR_CFLAGS += -MMD --build -j 8 -trace -cc -O0 --x-assign fast --x-initial fast --noassert -I$(CPU_DIR)
 VERILATOR_CFLAGS += $(TOPNAME_FLAG)
 VERILATOR_CFLAGS += $(PREFIX_FLAG)
 
@@ -30,7 +25,7 @@ default: $(BIN)
 $(shell mkdir -p $(BUILD_DIR))
 
 # project source
-VSRCS = $(shell find $(abspath $(Verilog_DIR)) -name "*.v")
+VSRCS = $(shell find $(abspath $(CPU_DIR)) -name "*.v")
 CSRCS = $(shell find $(abspath $(SRC_DIR)) -name "*.c" -o -name "*.cpp" -o -name "*.cc")
 #header 
 
