@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#include <autoconf.h>
 #define __GUEST_ISA__ riscv32
 
 

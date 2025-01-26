@@ -1,7 +1,6 @@
 #ifndef __CPU_CPU_H__
 #define __CPU_CPU_H__
 
-#include <generated/autoconf.h>
 #include <common.h>
 #include <debug.h>
 
