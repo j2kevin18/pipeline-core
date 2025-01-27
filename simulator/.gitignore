@@ -15,3 +15,5 @@ include/config
 include/generated
 .cache
 *.json
+!nemu
+!nemu/riscv32-nemu-interpreter-so
