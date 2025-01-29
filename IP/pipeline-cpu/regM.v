@@ -1,3 +1,4 @@
+`include "define.v"
 module regM(
     input wire clk,
     input wire rst,
