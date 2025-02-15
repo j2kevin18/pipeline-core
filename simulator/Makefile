@@ -1,6 +1,8 @@
-TOPNAME :=CPU
-CPU_DIR=$(CPU_HOME)/IP/pipeline-cpu
+TOPNAME :=cpu
+CPU_DIR=$(CPU_HOME)/IP/TaoShuRV
 
+# TOPNAME :=CPU
+# CPU_DIR=$(CPU_HOME)/IP/pipeline-cpu
 
 
 PREFIX_NAME:=npc
@@ -12,7 +14,7 @@ VL_ROOT_HEADER=\\\"$(PREFIX_NAME).h\\\"
 
 
 VERILATOR = verilator
-VERILATOR_CFLAGS += -MMD --build -j 8 -trace -cc -O0 --x-assign fast --x-initial fast --noassert -I$(CPU_DIR)
+VERILATOR_CFLAGS += -MMD --build -j 8 -trace -cc -O0 --x-assign fast --x-initial fast --noassert -I$(CPU_DIR) 
 VERILATOR_CFLAGS += $(TOPNAME_FLAG)
 VERILATOR_CFLAGS += $(PREFIX_FLAG)
 
@@ -54,7 +56,7 @@ $(BIN): $(VSRCS) $(CSRCS)
 
 override ARGS ?= --log=$(BUILD_DIR)/npc-log.txt
 override ARGS += --diff=$(SIM_HOME)/nemu/riscv32-nemu-interpreter-so
-override ARGS += --batch
+override ARGS += --batch 
 
 all: default
 

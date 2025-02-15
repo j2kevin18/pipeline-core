@@ -84,13 +84,21 @@ void execute(uint64_t n){
       if(sim_state.state == SIM_END) printf("下一条要执行的指令是----![信息待添加]\n");
       break; 
     }
+    // printf("commit: 0x%x\n", dut.commit);
     while(dut.commit != 1){
       npc_single_cycle();
     }
+    // printf("break loop\n");
+    // word_t commit_pc = dut.commit_pc;
+    // commit_pre_pc = dut.commit_pre_pc;
+    npc_single_cycle();                             //再执行一次,该指令执行完毕. 
+    if(dut.commit == 0)   npc_single_cycle();       //下一条指令无效，则再执行一次, 跳过该指令. 
     word_t commit_pc = dut.commit_pc;
     commit_pre_pc = dut.commit_pre_pc;
-    npc_single_cycle();                             //再执行一次,该指令执行完毕.   
     update_cpu_state();
+
+
+    // printf("commit_pc: 0x%x, pre_pc: 0x%x\n", commit_pc, commit_pre_pc);
     IFDEF(CONFIG_ITRACE,   instr_trace(commit_pc));
     IFDEF(CONFIG_DIFFTEST, difftest_step(commit_pc, commit_pc + 4));  
   }
