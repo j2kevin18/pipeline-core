@@ -77,7 +77,8 @@ assign id_to_if_bus = {branch_taken, branch_target, branch_taken_cancel};
     dm_wr_ctrl,
     dm_rd_ctrl,
     reg_waddr,
-    inst_ebreak
+    inst_ebreak,
+    inst_use_mem
   };
 
 // pipeline control
@@ -187,6 +188,7 @@ wire    inst_r_type;
 wire    inst_i_type;
 wire    inst_s_type;
 wire    inst_csr;
+wire    inst_use_mem;
 
 reg [`XLEN-1:0] imm;    //立即数
 
@@ -300,6 +302,7 @@ assign  inst_i_type   = inst_jalr | inst_lb | inst_lh | inst_lw | inst_lbu | ins
 assign  inst_s_type   = inst_sb | inst_sh | inst_sw ;
 assign  inst_csr      = inst_csrrw | inst_csrrs | inst_csrrc | 
                         inst_csrrwi| inst_csrrsi| inst_csrrci;
+assign inst_use_mem   = inst_s_type | inst_lb | inst_lh | inst_lw | inst_lbu | inst_lhu;
 
 //将指令转化成信号
 assign reg_waddr    = rd;

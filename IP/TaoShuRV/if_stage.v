@@ -35,6 +35,7 @@ assign if_to_id_bus = {if_pc, inst};
 //内部信号
 wire [`PC_WIDTH-1:0] seq_pc;
 wire [`PC_WIDTH-1:0] nextpc;  // 下一个pc值，pc+4或分支目标地址
+wire [`PC_WIDTH-1:0] filtered_pc;
 
 // pipeline control
 reg if_valid; 
@@ -72,11 +73,7 @@ end
 
 import "DPI-C" function int  dpi_mem_read 	(input int addr  , input int len);
 assign cur_pc              = seq_pc;
-assign inst                = dpi_mem_read(if_pc, 4);
-
-always @(*) begin
-  $display("pc: %h", if_pc);
-end
-
+assign filtered_pc         = if_pc[`XLEN-1] ? if_pc : `MEM_BASE;
+assign inst                = dpi_mem_read(filtered_pc, 4);
 
 endmodule

@@ -46,6 +46,7 @@ module exe_stage (
   wire [2:0] exe_dm_rd_ctrl;
   wire [4:0] exe_reg_waddr;
   wire exe_inst_ebreak;
+  wire exe_inst_use_mem;
   assign {
     exe_pc,
     exe_src1_is_pc,
@@ -59,7 +60,8 @@ module exe_stage (
     exe_dm_wr_ctrl,
     exe_dm_rd_ctrl,
     exe_reg_waddr,
-    exe_inst_ebreak
+    exe_inst_ebreak,
+    exe_inst_use_mem
   } = exe_reg;
 
   // output bus to MEM
@@ -110,7 +112,7 @@ module exe_stage (
 
   assign data_sram_wr_ctrl = exe_dm_wr_ctrl & {2{exe_valid}};
   assign data_sram_rd_ctrl = exe_dm_rd_ctrl;
-  assign data_sram_addr  = alu_result;
+  assign data_sram_addr  = exe_inst_use_mem ? alu_result : `MEM_BASE;
   assign data_sram_wdata = exe_rs2_value;
 
   // hazard detection
