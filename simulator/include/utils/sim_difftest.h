@@ -9,5 +9,5 @@
 //如果想要关闭【波形追踪】，就把它注释掉，！！！将代码注释掉，而不是将它的值修改为0！！！
 //如果想要开启【波形追踪】，就解开它的注释
 
-// #define CONFIG_NPC_OPEN_SIM 1
+#define CONFIG_NPC_OPEN_SIM 1
 

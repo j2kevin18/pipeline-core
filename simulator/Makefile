@@ -14,7 +14,7 @@ VL_ROOT_HEADER=\\\"$(PREFIX_NAME).h\\\"
 
 
 VERILATOR = verilator
-VERILATOR_CFLAGS += -MMD --build -j 8 -trace -cc -O0 --x-assign fast --x-initial fast --noassert -I$(CPU_DIR) 
+VERILATOR_CFLAGS += -MMD --build -j 8 -trace -cc -O0 --x-assign fast --x-initial fast --noassert -I$(CPU_DIR)  -Wno-UNOPTFLAT
 VERILATOR_CFLAGS += $(TOPNAME_FLAG)
 VERILATOR_CFLAGS += $(PREFIX_FLAG)
 

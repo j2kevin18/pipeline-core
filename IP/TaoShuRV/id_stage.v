@@ -64,6 +64,7 @@ assign id_to_if_bus = {branch_taken, branch_target, branch_taken_cancel};
   reg [ 2:0] dm_rd_ctrl; //dmem读控制
   reg [ 1:0] dm_wr_ctrl;  //dmem写控制
   wire [4:0] reg_waddr;
+  reg [3:0] mul_div_ctrl;
   assign id_to_exe_bus = {
     id_pc,
     src1_is_pc,
@@ -78,7 +79,8 @@ assign id_to_if_bus = {branch_taken, branch_target, branch_taken_cancel};
     dm_rd_ctrl,
     reg_waddr,
     inst_ebreak,
-    inst_use_mem
+    inst_use_mem,
+    mul_div_ctrl
   };
 
 // pipeline control
@@ -170,6 +172,14 @@ wire    inst_srl;
 wire    inst_sra;
 wire    inst_or;
 wire    inst_and;
+wire    inst_mul;
+wire    inst_mulh;
+wire    inst_mulhsu;
+wire    inst_mulhu;
+wire    inst_div;
+wire    inst_divu;
+wire    inst_rem;
+wire    inst_remu; 
 wire    inst_ecall;
 wire    inst_ebreak;
 wire    inst_mret;
@@ -276,6 +286,17 @@ assign  inst_sra  = rv32_alu && (funct3 ==3'b101) && (funct7 == 7'b01_000_00);
 assign  inst_or   = rv32_alu && (funct3 ==3'b110) && (funct7 == 7'b00_000_00);
 assign  inst_and  = rv32_alu && (funct3 ==3'b111) && (funct7 == 7'b00_000_00);
 
+//3. mul div
+assign inst_mul     = rv32_alu && (funct3 ==3'b000) && (funct7 == 7'b00_000_01);
+assign inst_mulh    = rv32_alu && (funct3 ==3'b001) && (funct7 == 7'b00_000_01);
+assign inst_mulhsu  = rv32_alu && (funct3 ==3'b010) && (funct7 == 7'b00_000_01);
+assign inst_mulhu   = rv32_alu && (funct3 ==3'b011) && (funct7 == 7'b00_000_01);
+
+assign inst_div     = rv32_alu && (funct3 ==3'b100) && (funct7 == 7'b00_000_01);
+assign inst_divu    = rv32_alu && (funct3 ==3'b101) && (funct7 == 7'b00_000_01);
+assign inst_rem     = rv32_alu && (funct3 ==3'b110) && (funct7 == 7'b00_000_01);
+assign inst_remu    = rv32_alu && (funct3 ==3'b111) && (funct7 == 7'b00_000_01);
+
 // SYSTEM INSTRUCTIONS
 assign inst_ecall  = rv32_system & (funct3 == 3'b000) & (id_inst[31:20] == 12'b0000_0000_0000);
 assign inst_ebreak = rv32_system & (funct3 == 3'b000) & (id_inst[31:20] == 12'b0000_0000_0001);
@@ -295,7 +316,9 @@ assign  inst_u_type   = inst_lui | inst_auipc ;
 assign  inst_jump_type= inst_jal ;
 assign  inst_b_type   = inst_beq | inst_bne | inst_blt | inst_bge | inst_bltu | inst_bgeu ;   
 assign  inst_r_type   = inst_add | inst_sub | inst_sll | inst_slt | inst_sltu | inst_xor 
-                    | inst_srl | inst_sra | inst_or | inst_and ;
+                    | inst_srl | inst_sra | inst_or | inst_and 
+                    | inst_mul | inst_mulh  | inst_mulhsu| inst_mulhu 
+                    | inst_div | inst_divu  | inst_rem   | inst_remu;
 assign  inst_i_type   = inst_jalr | inst_lb | inst_lh | inst_lw | inst_lbu | inst_lhu 
                     | inst_addi | inst_slti | inst_sltiu | inst_xori | inst_ori | inst_andi
                     | inst_slli | inst_srli | inst_srai ;
@@ -392,6 +415,25 @@ begin
     else if(inst_sw) dm_wr_ctrl = 2'b11;
     else  dm_wr_ctrl = 2'b00;
 end  
+
+//生成[3:0]mul_div_ctrl信号, 
+// 3: valid 
+// 2: mul or div 
+// 1: signed or unsigned
+// 0: high or low 32bit 
+always@(*)
+begin
+    if(inst_mulhsu) mul_div_ctrl = 4'b1000;
+    else if(inst_mulhu) mul_div_ctrl = 4'b1001;
+    else if(inst_mul) mul_div_ctrl = 4'b1010;
+    else if(inst_mulh) mul_div_ctrl = 4'b1011;
+
+    else if(inst_divu) mul_div_ctrl = 4'b1100;
+    else if(inst_remu) mul_div_ctrl = 4'b1101;
+    else if(inst_div) mul_div_ctrl = 4'b1110;
+    else if(inst_rem) mul_div_ctrl = 4'b1111;
+    else mul_div_ctrl = 4'b0000;
+end 
 
 //分支判断
 assign signed_rs1_value  = rs1_value;

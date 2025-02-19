@@ -92,7 +92,7 @@ void execute(uint64_t n){
     // word_t commit_pc = dut.commit_pc;
     // commit_pre_pc = dut.commit_pre_pc;
     npc_single_cycle();                             //再执行一次,该指令执行完毕. 
-    if(dut.commit == 0)   npc_single_cycle();       //下一条指令无效，则再执行一次, 跳过该指令. 
+    while(dut.commit == 0)   npc_single_cycle();       //下一条指令无效，则再执行一次, 跳过该指令. 
     word_t commit_pc = dut.commit_pc;
     commit_pre_pc = dut.commit_pre_pc;
     update_cpu_state();
