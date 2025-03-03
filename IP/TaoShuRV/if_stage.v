@@ -8,6 +8,10 @@ module if_stage (
     input  id_allow_in,
     output if_to_id_valid,
 
+    //csr detection
+    input [`PC_WIDTH-1:0] clint_csr_pc,
+    input system_flush,
+
     // bus to id
     output [`IF_TO_ID_BUS_WIDTH-1:0] if_to_id_bus,
 
@@ -35,6 +39,7 @@ assign if_to_id_bus = {if_pc, inst};
 //内部信号
 wire [`PC_WIDTH-1:0] seq_pc;
 wire [`PC_WIDTH-1:0] nextpc;  // 下一个pc值，pc+4或分支目标地址
+wire [`PC_WIDTH-1:0] mret_pc; // mret指令的返回地址
 wire [`PC_WIDTH-1:0] filtered_pc;
 
 // pipeline control
@@ -50,12 +55,15 @@ always @(posedge clk) begin
     if_valid <= pre_if_valid;
   end else if (branch_taken_cancel) begin
     if_valid <= 1'b0;
+  end else if (system_flush) begin
+    if_valid <= 1'b0;
   end
 end
 
 //pre-fetch stage
 assign seq_pc = if_pc + `PC_WIDTH'h4;
 assign nextpc = branch_taken ? branch_target : seq_pc;
+assign mret_pc  = system_flush ? clint_csr_pc : nextpc;
 assign pre_if_valid = ~rst; 
 
 //ifetch stage
@@ -67,13 +75,13 @@ always @(posedge clk) begin
     if (rst) begin
         if_pc <= `MEM_BASE -`PC_WIDTH'h4; 
     end else if (if_allow_in && pre_if_valid) begin
-        if_pc <= nextpc;
+        if_pc <= mret_pc;
     end
 end
 
 import "DPI-C" function int  dpi_mem_read 	(input int addr  , input int len);
 assign cur_pc              = seq_pc;
-assign filtered_pc         = if_pc[`XLEN-1] ? if_pc : `MEM_BASE;
+assign filtered_pc         = (if_pc >= `MEM_BASE && if_pc <= `MEM_TOP) ? if_pc : `MEM_BASE;
 assign inst                = dpi_mem_read(filtered_pc, 4);
 
 endmodule

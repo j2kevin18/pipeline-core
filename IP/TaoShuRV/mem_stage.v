@@ -10,6 +10,10 @@ module mem_stage (
     input  wb_allow_in,
     output mem_to_wb_valid,
 
+    //csr detection
+    input  system_flush,
+    output mem_inst_csr,
+
     // bypass
     output reg mem_valid,
     output [`BYPASS_BUS_WIDTH-1:0] mem_to_id_bypass_bus,
@@ -33,13 +37,19 @@ module mem_stage (
     wire mem_rf_wr_en;
     wire [4:0] mem_reg_waddr;
     wire [`XLEN-1:0] mem_data_sram_rdata;
-    wire mem_inst_ebreak;
+    wire [`XLEN-1:0] mem_csr_idx;
+    wire [3:0] mem_csr_data_ctrl;
+    wire [`XLEN-1:0] mem_csr_data;
+    wire [1:0] mem_system_inst_ctrl;
     assign {mem_pc, mem_alu_result, mem_rf_wr_sel, mem_rf_wr_en, 
-            mem_reg_waddr, mem_data_sram_rdata, mem_inst_ebreak} = mem_reg;
+            mem_reg_waddr, mem_data_sram_rdata, 
+            mem_csr_idx, mem_csr_data_ctrl, mem_csr_data,
+            mem_system_inst_ctrl} = mem_reg;
 
     // output bus to WB
     reg [`XLEN-1:0] final_result;
-    assign mem_to_wb_bus = {mem_pc, final_result, mem_rf_wr_en, mem_reg_waddr, mem_inst_ebreak};
+    assign mem_to_wb_bus = {mem_pc, final_result, mem_rf_wr_en, mem_reg_waddr, 
+                            mem_csr_idx, mem_csr_data_ctrl, mem_csr_data, mem_system_inst_ctrl};
 
     // pipeline control
     // reg  mem_valid;
@@ -51,9 +61,11 @@ module mem_stage (
 
     always @(posedge clk) begin
         if (rst) begin
-        mem_valid <= 1'b0;
+            mem_valid <= 1'b0;
+        end else if (system_flush) begin
+            mem_valid <= 1'b0;
         end else if (mem_allow_in) begin
-        mem_valid <= exe_to_mem_valid;
+            mem_valid <= exe_to_mem_valid;
         end
     end
 
@@ -83,5 +95,8 @@ module mem_stage (
 
    // bypass to ID
   assign mem_to_id_bypass_bus = {mem_rf_wr_en, mem_reg_waddr, final_result};
+
+  //csr ctrl
+  assign mem_inst_csr = mem_csr_data_ctrl[3] & mem_valid;
 
 endmodule

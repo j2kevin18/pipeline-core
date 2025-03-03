@@ -27,12 +27,14 @@ module cpu (
   wire [`IF_TO_ID_BUS_WIDTH-1:0] if_to_id_bus;
 
   // ID
+  wire id_inst_csr;
   wire id_allow_in;
   wire id_to_exe_valid;
   wire [`ID_TO_EXE_BUS_WIDTH-1:0] id_to_exe_bus;
   wire [`ID_TO_IF_BUS_WIDTH-1:0] id_to_if_bus;
 
   // EXE
+  wire exe_inst_csr;
   wire exe_allow_in;
   wire exe_to_mem_valid;
   wire [`EXE_TO_MEM_BUS_WIDTH-1:0] exe_to_mem_bus;
@@ -41,6 +43,7 @@ module cpu (
   wire [`BYPASS_BUS_WIDTH-1:0] exe_to_id_bypass_bus;
 
   // MEM
+  wire mem_inst_csr;
   wire mem_allow_in;
   wire mem_to_wb_valid;
   wire mem_valid;
@@ -48,6 +51,9 @@ module cpu (
   wire [`MEM_TO_WB_BUS_WIDTH-1:0] mem_to_wb_bus;
 
   // WB
+  wire [`PC_WIDTH-1:0] clint_csr_pc;
+  wire wb_inst_csr;
+  wire system_flush;
   wire wb_allow_in;
   wire wb_valid;
   wire [`WB_TO_ID_BUS_WIDTH-1:0] wb_to_id_bus;
@@ -60,6 +66,9 @@ module cpu (
     .if_to_id_valid  	(if_to_id_valid   ),
     .if_to_id_bus    	(if_to_id_bus     ),
     .id_to_if_bus    	(id_to_if_bus     ),
+
+    .clint_csr_pc     (clint_csr_pc        ),
+    .system_flush       (system_flush          ),
 
     .cur_pc           (cur_pc       )
     // .inst_sram_en    	(inst_sram_en     ),
@@ -84,7 +93,12 @@ module cpu (
     .if_to_id_bus         	(if_to_id_bus          ),
     .id_to_exe_bus        	(id_to_exe_bus         ),
     .id_to_if_bus         	(id_to_if_bus          ),
-    .wb_to_id_bus         	(wb_to_id_bus          )
+    .wb_to_id_bus         	(wb_to_id_bus          ),
+
+    .exe_inst_csr     (exe_inst_csr      ),
+    .mem_inst_csr     (mem_inst_csr      ),
+    .wb_inst_csr      (wb_inst_csr      ),
+    .system_flush       (system_flush       )
   );
   
   exe_stage u_exe_stage(
@@ -103,7 +117,10 @@ module cpu (
     .data_sram_wr_ctrl    	(data_sram_wr_ctrl     ),
     .data_sram_addr       	(data_sram_addr        ),
     .data_sram_wdata      	(data_sram_wdata       ),
-    .data_sram_rdata      	(data_sram_rdata       ) 
+    .data_sram_rdata      	(data_sram_rdata       ),
+
+    .exe_inst_csr     (exe_inst_csr      ),
+    .system_flush       (system_flush       )
   );
 
   
@@ -117,7 +134,10 @@ module cpu (
     .mem_valid            	(mem_valid             ),
     .mem_to_id_bypass_bus 	(mem_to_id_bypass_bus  ),
     .exe_to_mem_bus       	(exe_to_mem_bus        ),
-    .mem_to_wb_bus        	(mem_to_wb_bus         )
+    .mem_to_wb_bus        	(mem_to_wb_bus         ),
+
+    .mem_inst_csr     (mem_inst_csr      ),
+    .system_flush       (system_flush       )
     // .data_sram_rdata      	(data_sram_rdata       )
   );
 
@@ -130,6 +150,10 @@ module cpu (
     .wb_valid        	(wb_valid         ),
     .mem_to_wb_bus   	(mem_to_wb_bus    ),
     .wb_to_id_bus    	(wb_to_id_bus     ),
+
+    .clint_csr_pc    	(clint_csr_pc     ),
+    .wb_inst_csr     	(wb_inst_csr      ),
+    .system_flush       (system_flush       ),
 
     .commit           (commit       ),
     .commit_pc        (commit_pc    ),

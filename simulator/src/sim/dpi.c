@@ -24,12 +24,13 @@ extern "C" int dpi_mem_read(int addr, int len){
 		unsigned int data = pmem_read(addr, len);
 		return data;
 	}else{
-		printf("你将要访问的内存地址是0x%x, 不属于内存地址[0x80000000, 0x8ffffffff], 程序即将出错退出\n", addr);
+		printf("dpi_mem_read: 你将要访问的内存地址是0x%x, 不属于内存地址[0x80000000, 0x8ffffffff], 程序即将出错退出\n", addr);
 		npc_close_simulation();
 		exit(1);
 	}
 }
 extern "C" void dpi_mem_write(int addr, int data, int len){
+	// printf("dpi_mem_write: 你的处理器将要访问的地址是[0x%x]\n", addr);
 	if(addr == CONFIG_SERIAL_MMIO){
 		char ch = data;
 		printf("%c", ch);
@@ -40,7 +41,7 @@ extern "C" void dpi_mem_write(int addr, int data, int len){
 		pmem_write(addr, len, data);
 	}
 	else{
-		printf("你将要访问的内存地址是0x%x, 不属于内存地址[0x80000000, 0x8ffffffff], 程序即将出错退出\n", addr);
+		printf("dpi_mem_write: 你将要访问的内存地址是0x%x, 不属于内存地址[0x80000000, 0x8ffffffff], 程序即将出错退出\n", addr);
 		npc_close_simulation();
 		exit(1);
 		

@@ -8,10 +8,17 @@
 #endif
 
 struct Context {
-  // TODO: fix the order of these members to match trap.S
-  uintptr_t mepc, mcause, gpr[NR_REGS], mstatus;
-  void *pdir;
+  uintptr_t gpr[NR_REGS]; //32*4=128
+  uintptr_t mcause; //4
+  uintptr_t mstatus;//4
+  uintptr_t mepc;   //4
+  void *pdir;       //4
 };
+// struct Context {
+//   // TODO: fix the order of these members to match trap.S
+//   uintptr_t mepc, mcause, gpr[NR_REGS], mstatus;
+//   void *pdir;
+// };
 
 #ifdef __riscv_e
 #define GPR1 gpr[15] // a5

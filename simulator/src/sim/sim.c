@@ -99,8 +99,8 @@ void execute(uint64_t n){
 
 
     // printf("commit_pc: 0x%x, pre_pc: 0x%x\n", commit_pc, commit_pre_pc);
-    IFDEF(CONFIG_ITRACE,   instr_trace(commit_pc));
-    IFDEF(CONFIG_DIFFTEST, difftest_step(commit_pc, commit_pc + 4));  
+    // IFDEF(CONFIG_ITRACE,   instr_trace(commit_pc));
+    // IFDEF(CONFIG_DIFFTEST, difftest_step(commit_pc, commit_pc + 4));  
   }
 }
 

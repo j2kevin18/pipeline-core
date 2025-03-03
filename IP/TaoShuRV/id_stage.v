@@ -19,6 +19,12 @@ module id_stage (
     input [`BYPASS_BUS_WIDTH-1:0] mem_to_id_bypass_bus,
     input wb_valid,
 
+    //csr detection
+    input exe_inst_csr,
+    input mem_inst_csr,
+    input wb_inst_csr,
+    input system_flush,
+
     // bus from if
     input [`IF_TO_ID_BUS_WIDTH-1:0] if_to_id_bus,
 
@@ -59,12 +65,15 @@ assign id_to_if_bus = {branch_taken, branch_target, branch_taken_cancel};
   wire [`XLEN-1:0] rs2_value;  // rs1或rs2的值
   reg branch_en; //满不满足分支条件
   reg [ 1:0]  rf_wr_sel;  // 判断结果是来自内存、PC，还是alu
-  wire [`XLEN-1:0] id_imm;    //立即数
+  wire [`XLEN-1:0] id_imm;    //立即数或csr寄存器地址
   reg [ 3:0] alu_ctrl; //alu的控制信号
   reg [ 2:0] dm_rd_ctrl; //dmem读控制
   reg [ 1:0] dm_wr_ctrl;  //dmem写控制
-  wire [4:0] reg_waddr;
-  reg [3:0] mul_div_ctrl;
+  wire [4:0] reg_waddr;   //写回寄存器地址
+  reg [ 3:0] mul_div_ctrl; //乘法除法控制信号
+  reg [`XLEN-1:0] csr_data;   // csr的写数据
+  reg [ 3:0] csr_data_ctrl; //csr控制信号
+  reg [ 1:0] system_inst_ctrl; //系统指令控制信号
   assign id_to_exe_bus = {
     id_pc,
     src1_is_pc,
@@ -78,9 +87,11 @@ assign id_to_if_bus = {branch_taken, branch_target, branch_taken_cancel};
     dm_wr_ctrl,
     dm_rd_ctrl,
     reg_waddr,
-    inst_ebreak,
     inst_use_mem,
-    mul_div_ctrl
+    mul_div_ctrl,
+    csr_data_ctrl,
+    csr_data,
+    system_inst_ctrl
   };
 
 // pipeline control
@@ -94,6 +105,8 @@ always @(posedge clk) begin
   if (rst) begin
     id_valid <= 1'b0;
   end else if (branch_taken_cancel) begin
+    id_valid <= 1'b0;
+  end else if (system_flush) begin
     id_valid <= 1'b0;
   end else if (id_allow_in) begin
     id_valid <= if_to_id_valid;
@@ -321,7 +334,7 @@ assign  inst_r_type   = inst_add | inst_sub | inst_sll | inst_slt | inst_sltu | 
                     | inst_div | inst_divu  | inst_rem   | inst_remu;
 assign  inst_i_type   = inst_jalr | inst_lb | inst_lh | inst_lw | inst_lbu | inst_lhu 
                     | inst_addi | inst_slti | inst_sltiu | inst_xori | inst_ori | inst_andi
-                    | inst_slli | inst_srli | inst_srai ;
+                    | inst_slli | inst_srli | inst_srai  | inst_csr;
 assign  inst_s_type   = inst_sb | inst_sh | inst_sw ;
 assign  inst_csr      = inst_csrrw | inst_csrrs | inst_csrrc | 
                         inst_csrrwi| inst_csrrsi| inst_csrrci;
@@ -435,6 +448,33 @@ begin
     else mul_div_ctrl = 4'b0000;
 end 
 
+//生成[3:0]csr_data_ctrl信号
+// 3: valid 
+// 2: use uimm or not 
+// 1~0: w, s or c
+always@(*)
+begin
+    if(inst_csrrw) csr_data_ctrl = 4'b1001;
+    else if(inst_csrrs) csr_data_ctrl = 4'b1010;
+    else if(inst_csrrc) csr_data_ctrl = 4'b1011;
+
+    else if(inst_csrrwi) csr_data_ctrl = 4'b1101;
+    else if(inst_csrrsi) csr_data_ctrl = 4'b1110;
+    else if(inst_csrrci) csr_data_ctrl = 4'b1111;
+    else csr_data_ctrl = 4'b0000;
+
+    csr_data = csr_data_ctrl[2] ? {27'b0, rs1} : rs1_value;
+end 
+
+//生成[1:0]system_inst_ctrl信号
+always@(*)
+begin
+    if(inst_ebreak) system_inst_ctrl = 2'b01;
+    else if(inst_ecall) system_inst_ctrl = 2'b10;
+    else if(inst_mret) system_inst_ctrl = 2'b11;
+    else system_inst_ctrl = 2'b00;
+end
+
 //分支判断
 assign signed_rs1_value  = rs1_value;
 assign signed_rs2_value  = rs2_value;
@@ -460,6 +500,7 @@ assign branch_target = (inst_b_type | inst_jump_type) ? (id_pc + imm) :
 assign id_rf_wr_en       = wb_rf_wr_en;
 assign rf_waddr          = wb_rf_waddr;
 assign rf_wdata          = wb_rf_wdata;
+
 
 // hazard detection
 // read rs1?
@@ -498,7 +539,7 @@ wire rf_rdata2_hazard = use_rf_rdata2 && (
   // (wb_valid && wb_rf_wr_en && (rf_raddr2 == wb_rf_waddr))
 );
 
-assign id_ready_go = !rf_rdata1_hazard && !rf_rdata2_hazard;
+assign id_ready_go = !rf_rdata1_hazard && !rf_rdata2_hazard && !exe_inst_csr && !mem_inst_csr && !wb_inst_csr;
 //预测总失败
 assign branch_taken_cancel = id_valid && id_ready_go && branch_taken && exe_allow_in;
 

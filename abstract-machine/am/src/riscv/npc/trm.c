@@ -1,6 +1,8 @@
 #include <am.h>
 #include <klib-macros.h>
-#include <stdio.h>
+#include <riscv/riscv.h>
+#include "npc.h"
+
 extern char _heap_start;
 int main(const char *args);
 
@@ -16,6 +18,7 @@ static const char mainargs[] = MAINARGS;
 
 
 void putch(char ch) {
+  outb(SERIAL_PORT, ch); //这里只用了一个字节
 }
 
 void halt(int code) {

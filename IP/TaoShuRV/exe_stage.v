@@ -15,6 +15,9 @@ module exe_stage (
     output exe_is_load,
     output reg exe_valid,
 
+    //csr detection
+    input  system_flush,
+    output exe_inst_csr,
 
     // bus from id
     input [`ID_TO_EXE_BUS_WIDTH-1:0] id_to_exe_bus,
@@ -40,14 +43,16 @@ module exe_stage (
   wire [`XLEN-1:0] exe_imm;
   wire [`XLEN-1:0] exe_rs1_value;
   wire [`XLEN-1:0] exe_rs2_value;
+  wire [`XLEN-1:0] exe_csr_data;
   wire [1:0] exe_rf_wr_sel;
   wire [3:0] exe_alu_ctrl;
   wire [1:0] exe_dm_wr_ctrl;
   wire [2:0] exe_dm_rd_ctrl;
   wire [4:0] exe_reg_waddr;
-  wire exe_inst_ebreak;
   wire exe_inst_use_mem;
   wire [3:0] exe_mul_div_ctrl;
+  wire [3:0] exe_csr_data_ctrl;
+  wire [1:0] exe_system_inst_ctrl;
   assign {
     exe_pc,
     exe_src1_is_pc,
@@ -61,16 +66,21 @@ module exe_stage (
     exe_dm_wr_ctrl,
     exe_dm_rd_ctrl,
     exe_reg_waddr,
-    exe_inst_ebreak,
     exe_inst_use_mem,
-    exe_mul_div_ctrl
+    exe_mul_div_ctrl,
+    exe_csr_data_ctrl,
+    exe_csr_data,
+    exe_system_inst_ctrl
   } = exe_reg;
 
   // output bus to MEM
   reg [`XLEN-1:0] exe_result;
+  wire [`XLEN-1:0] exe_csr_idx;
   // assign exe_to_mem_bus = {exe_pc, exe_result, exe_rf_wr_sel, exe_rf_wr_en, exe_reg_waddr}; //同步RAM
   assign exe_to_mem_bus = {exe_pc, exe_result, exe_rf_wr_sel, exe_rf_wr_en, 
-                          exe_reg_waddr, data_sram_rdata, exe_inst_ebreak};
+                          exe_reg_waddr, data_sram_rdata,
+                          exe_csr_idx, exe_csr_data_ctrl, exe_csr_data,
+                          exe_system_inst_ctrl};
 
   // pipeline control
   // reg  ex_valid;
@@ -82,6 +92,8 @@ module exe_stage (
 
   always @(posedge clk) begin
     if (rst) begin
+      exe_valid <= 1'b0;
+    end else if (system_flush) begin
       exe_valid <= 1'b0;
     end else if (exe_allow_in) begin
       exe_valid <= id_to_exe_valid;
@@ -113,6 +125,7 @@ module exe_stage (
       .alu_result(alu_result)
   );
 
+  // MUL/DIV
   wire mul_div_valid;
   wire is_signed;
   wire is_mul_div_high;
@@ -184,6 +197,11 @@ module exe_stage (
     end
   end
 
+  //csr ctrl
+  assign exe_csr_idx = exe_imm;
+  assign exe_inst_csr = exe_csr_data_ctrl[3] & exe_valid;
+
+  // data memory
   assign data_sram_wr_ctrl = exe_dm_wr_ctrl & {2{exe_valid}};
   assign data_sram_rd_ctrl = exe_dm_rd_ctrl;
   assign data_sram_addr  = exe_inst_use_mem ? exe_result : `MEM_BASE;

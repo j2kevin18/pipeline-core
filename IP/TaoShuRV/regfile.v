@@ -21,13 +21,13 @@ initial begin
 	dpi_read_regfile(rf);
 end
 
-initial begin
-    integer i;
-    for (i = 0; i < 32; i = i + 1) begin
-        rf[i] = i;
-    end
-    rf[20] = 32'h80000000;
-end
+// initial begin
+//     integer i;
+//     for (i = 0; i < 32; i = i + 1) begin
+//         rf[i] = i;
+//     end
+//     rf[20] = 32'h80000000;
+// end
 
 
 //WRITE

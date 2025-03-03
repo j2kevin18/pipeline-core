@@ -20,4 +20,5 @@
 `define ALU_OP_XXX      4'b1111
 
 `define MEM_BASE        32'h80000000
+`define MEM_TOP         32'h8fffffff
 
